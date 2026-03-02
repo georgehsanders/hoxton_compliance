@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Permit Directory{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>Permit Directory</h1>
+        <p>{{ permit_types|length }} permit types</p>
+    </div>
+    <button class="btn btn-primary" data-modal="add-pt-modal">+ Add Permit Type</button>
+</div>
+
+{% for pt in permit_types %}
+<div class="card">
+    <div class="card-header">
+        <span>{{ pt.permit_type.name }}</span>
+        <span class="count">{{ pt.employees|length }} employees</span>
+    </div>
+    {% if pt.permit_type.default_issuing_authority or pt.permit_type.default_renewal_url or pt.permit_type.default_duration_string %}
+    <div style="padding:.5rem 1.25rem;font-size:.8rem;color:var(--color-text-muted);border-bottom:1px solid var(--color-border);">
+        {% if pt.permit_type.default_issuing_authority %}Authority: {{ pt.permit_type.default_issuing_authority }} &nbsp;{% endif %}
+        {% if pt.permit_type.default_duration_string %}Duration: {{ pt.permit_type.default_duration_string }} &nbsp;{% endif %}
+        {% if pt.permit_type.default_renewal_url %}<a href="{{ pt.permit_type.default_renewal_url }}" target="_blank">Renewal link</a>{% endif %}
+    </div>
+    {% endif %}
+    {% if pt.employees %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Group</th>
+                    <th>Permit #</th>
+                    <th>Expiration</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in pt.employees %}
+                <tr>
+                    <td><a href="{{ url_for('employees.profile', emp_id=e.id) }}">{{ e.full_name }}</a></td>
+                    <td>{{ e.group_name }}</td>
+                    <td>{{ e.permit_number or '—' }}</td>
+                    <td>{{ e.latest_expiration or 'No renewal' }}</td>
+                    <td>{{ e.status|status_badge|safe }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">No employees hold this permit type.</div>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% if not permit_types %}
+<div class="card"><div class="empty-state">No permit types defined. Click "Add Permit Type" to create one.</div></div>
+{% endif %}
+
+{# ── Add Permit Type Modal ────────────────────────────────────────────── #}
+<div id="add-pt-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <span>Add Permit Type</span>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form action="{{ url_for('permits.add') }}" method="post">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="pt_name">Name *</label>
+                    <input type="text" name="name" id="pt_name" class="form-control" required placeholder="e.g. Food Handler">
+                </div>
+                <div class="form-group">
+                    <label for="pt_authority">Default Issuing Authority</label>
+                    <input type="text" name="issuing_authority" id="pt_authority" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="pt_url">Default Renewal URL</label>
+                    <input type="url" name="renewal_url" id="pt_url" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="pt_duration">Default Duration (e.g. "1 year")</label>
+                    <input type="text" name="duration_string" id="pt_duration" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn modal-cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

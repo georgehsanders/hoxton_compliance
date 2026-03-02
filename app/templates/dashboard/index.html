@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>Compliance Dashboard</h1>
+        <p>Overview of employee permit compliance status</p>
+    </div>
+    <div>
+        <label for="sort-select" class="text-sm text-muted">View: </label>
+        <select id="sort-select" class="form-control" style="width:auto;display:inline-block;">
+            <option value="">Default order</option>
+            <option value="expired">Expired first</option>
+            <option value="upcoming">Upcoming first</option>
+            <option value="compliant">Compliant first</option>
+        </select>
+    </div>
+</div>
+
+{# ── Metrics bar ──────────────────────────────────────────────────────── #}
+<div class="metrics-bar">
+    <div class="metric-card metric-headline">
+        <div class="metric-value">{{ metrics.headline_pct }}%</div>
+        <div class="metric-label">Overall Compliance</div>
+        <div class="metric-detail">{{ metrics.compliant_count + metrics.upcoming_count }} / {{ metrics.total }} employees</div>
+    </div>
+    <div class="metric-card metric-compliant">
+        <div class="metric-value">{{ metrics.fully_compliant_pct }}%</div>
+        <div class="metric-label">Fully Compliant</div>
+        <div class="metric-detail">{{ metrics.compliant_count }} / {{ metrics.total }}</div>
+    </div>
+    <div class="metric-card metric-upcoming">
+        <div class="metric-value">{{ metrics.upcoming_pct }}%</div>
+        <div class="metric-label">Upcoming</div>
+        <div class="metric-detail">{{ metrics.upcoming_count }} / {{ metrics.total }}</div>
+    </div>
+    <div class="metric-card metric-expired">
+        <div class="metric-value">{{ metrics.expired_pct }}%</div>
+        <div class="metric-label">Expired</div>
+        <div class="metric-detail">{{ metrics.expired_count }} / {{ metrics.total }}</div>
+    </div>
+</div>
+
+{# ── Expired employees ────────────────────────────────────────────────── #}
+<div id="section-expired" style="order:0">
+<div class="card">
+    <div class="card-header">
+        <span><span class="badge badge-expired">Expired</span> Employees</span>
+        <span class="count">{{ expired_employees|length }}</span>
+    </div>
+    {% if expired_employees %}
+    <div>
+        {% for emp in expired_employees %}
+        <div class="employee-row">
+            <a href="{{ url_for('employees.profile', emp_id=emp.id) }}" class="emp-name">{{ emp.full_name }}</a>
+            <span class="emp-meta">{{ emp.group_name }} &middot; {{ emp.role or 'No role' }}</span>
+            <span class="emp-status">
+                <span class="text-sm text-muted">
+                    {{ emp.compliance_details.active }} active,
+                    {{ emp.compliance_details.upcoming }} upcoming,
+                    {{ emp.compliance_details.expired }} expired
+                </span>
+                <span class="badge badge-expired">Expired</span>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">No expired employees</div>
+    {% endif %}
+</div>
+</div>
+
+{# ── Upcoming employees ───────────────────────────────────────────────── #}
+<div id="section-upcoming" style="order:0">
+<div class="card">
+    <div class="card-header">
+        <span><span class="badge badge-upcoming">Upcoming</span> Employees</span>
+        <span class="count">{{ upcoming_employees|length }}</span>
+    </div>
+    {% if upcoming_employees %}
+    <div>
+        {% for emp in upcoming_employees %}
+        <div class="employee-row">
+            <a href="{{ url_for('employees.profile', emp_id=emp.id) }}" class="emp-name">{{ emp.full_name }}</a>
+            <span class="emp-meta">{{ emp.group_name }} &middot; {{ emp.role or 'No role' }}</span>
+            <span class="emp-status">
+                <span class="text-sm text-muted">
+                    {{ emp.compliance_details.active }} active,
+                    {{ emp.compliance_details.upcoming }} upcoming
+                </span>
+                <span class="badge badge-upcoming">Upcoming</span>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">No upcoming expirations</div>
+    {% endif %}
+</div>
+</div>
+
+{# ── Compliant employees ──────────────────────────────────────────────── #}
+<div id="section-compliant" style="order:0">
+<div class="card">
+    <div class="card-header">
+        <span><span class="badge badge-active">Compliant</span> Employees</span>
+        <span class="count">{{ compliant_employees|length }}</span>
+    </div>
+    {% if compliant_employees %}
+    <div>
+        {% for emp in compliant_employees %}
+        <div class="employee-row">
+            <a href="{{ url_for('employees.profile', emp_id=emp.id) }}" class="emp-name">{{ emp.full_name }}</a>
+            <span class="emp-meta">{{ emp.group_name }} &middot; {{ emp.role or 'No role' }}</span>
+            <span class="emp-status">
+                <span class="text-sm text-muted">
+                    {% if emp.compliance_details.active > 0 %}
+                    {{ emp.compliance_details.active }} active
+                    {% else %}
+                    No permits
+                    {% endif %}
+                </span>
+                <span class="badge badge-active">Compliant</span>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">No compliant employees</div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

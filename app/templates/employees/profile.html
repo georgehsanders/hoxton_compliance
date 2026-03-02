@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}{{ emp.first_name }} {{ emp.last_name }}{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>{{ emp.first_name }} {{ emp.last_name }}</h1>
+        <p>
+            {{ emp.group_name }} &middot; {{ emp.role or 'No role' }}
+            {% if emp.archived %}
+            <span class="badge badge-inactive">Archived</span>
+            {% else %}
+                {% if compliance_category == 'EXPIRED' %}
+                <span class="badge badge-expired">Expired</span>
+                {% elif compliance_category == 'UPCOMING' %}
+                <span class="badge badge-upcoming">Upcoming</span>
+                {% else %}
+                <span class="badge badge-active">Compliant</span>
+                {% endif %}
+            {% endif %}
+        </p>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+        <a href="{{ url_for('employees.roster') }}" class="btn">&larr; Back</a>
+        <form action="{{ url_for('employees.toggle_archive', emp_id=emp.id) }}" method="post" style="display:inline;">
+            <button type="submit" class="btn {% if emp.archived %}btn-primary{% else %}btn-danger{% endif %}"
+                    data-confirm="Are you sure you want to {{ 'unarchive' if emp.archived else 'archive' }} this employee?">
+                {{ 'Unarchive' if emp.archived else 'Archive' }}
+            </button>
+        </form>
+    </div>
+</div>
+
+{# ── Edit employee details ────────────────────────────────────────────── #}
+<div class="card">
+    <div class="card-header">Employee Details</div>
+    <div class="card-body">
+        <form action="{{ url_for('employees.edit', emp_id=emp.id) }}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name *</label>
+                    <input type="text" name="first_name" id="first_name" class="form-control" value="{{ emp.first_name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name *</label>
+                    <input type="text" name="last_name" id="last_name" class="form-control" value="{{ emp.last_name }}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="group_id">Group *</label>
+                    <select name="group_id" id="group_id" class="form-control" required>
+                        {% for g in groups %}
+                        <option value="{{ g.id }}" {% if g.id == emp.group_id %}selected{% endif %}>{{ g.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <input type="text" name="role" id="role" class="form-control" value="{{ emp.role }}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" class="form-control" value="{{ emp.email }}">
+                </div>
+                <div class="form-group">
+                    <label for="employee_id">Employee ID (ADP)</label>
+                    <input type="text" name="employee_id" id="employee_id" class="form-control" value="{{ emp.employee_id or '' }}">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-1">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+{# ── Permits ──────────────────────────────────────────────────────────── #}
+<div class="section-header">
+    <h2>Permits</h2>
+    <button class="btn btn-primary btn-sm" data-modal="add-permit-modal">+ Add Permit</button>
+</div>
+
+{% if permits %}
+{% for p in permits %}
+<div class="permit-card">
+    <div class="permit-card-header">
+        <span>
+            {{ p.display_name }}
+            {% if p.status == 'INACTIVE' %}
+            <span class="badge badge-inactive">Inactive</span>
+            {% else %}
+            {{ p.status|status_badge|safe }}
+            {% endif %}
+        </span>
+        <span style="display:flex;gap:.5rem;">
+            {% if p.active %}
+            <button class="btn btn-sm" data-modal="renew-modal-{{ p.id }}">Renew</button>
+            {% endif %}
+            <form action="{{ url_for('employees.toggle_permit', emp_id=emp.id, permit_id=p.id) }}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-sm {% if p.active %}btn-danger{% else %}btn-primary{% endif %}"
+                        data-confirm="Are you sure?">
+                    {{ 'Deactivate' if p.active else 'Reactivate' }}
+                </button>
+            </form>
+        </span>
+    </div>
+    <div class="permit-card-body">
+        <dl class="permit-meta">
+            <dt>Permit #</dt><dd>{{ p.permit_number or '—' }}</dd>
+            <dt>Issuing Authority</dt><dd>{{ p.issuing_authority or '—' }}</dd>
+            <dt>Latest Expiration</dt><dd>{{ p.latest_expiration or 'No renewal on file' }}</dd>
+            <dt>Renewal URL</dt>
+            <dd>{% if p.renewal_url %}<a href="{{ p.renewal_url }}" target="_blank">{{ p.renewal_url }}</a>{% else %}—{% endif %}</dd>
+        </dl>
+
+        {% if p.renewals %}
+        <div class="renewal-history">
+            <h4>Renewal History</h4>
+            <table>
+                <thead>
+                    <tr><th>Renewal Date</th><th>Expiration Date</th><th>Duration</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in p.renewals %}
+                    <tr>
+                        <td>{{ r.renewal_date }}</td>
+                        <td>{{ r.expiration_date }}</td>
+                        <td>{{ r.duration_string or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Renewal modal for this permit #}
+<div id="renew-modal-{{ p.id }}" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <span>Renew: {{ p.display_name }}</span>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form action="{{ url_for('employees.renew_permit', emp_id=emp.id, permit_id=p.id) }}" method="post">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="renewal_date_{{ p.id }}">Renewal Date *</label>
+                    <input type="date" name="renewal_date" id="renewal_date_{{ p.id }}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="expiration_date_{{ p.id }}">Expiration Date *</label>
+                    <input type="date" name="expiration_date" id="expiration_date_{{ p.id }}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="duration_string_{{ p.id }}">Duration (optional, e.g. "6 months", "1 year")</label>
+                    <input type="text" name="duration_string" id="duration_string_{{ p.id }}" class="form-control" placeholder="6 months">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn modal-cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Renewal</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card">
+    <div class="empty-state">No permits assigned. Click "Add Permit" to get started.</div>
+</div>
+{% endif %}
+
+{# ── Add Permit Modal ─────────────────────────────────────────────────── #}
+<div id="add-permit-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <span>Add Permit</span>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form action="{{ url_for('employees.add_permit', emp_id=emp.id) }}" method="post">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="permit-type-select">Permit Type</label>
+                    <select name="permit_type_id" id="permit-type-select" class="form-control">
+                        <option value="">— Select or enter custom below —</option>
+                        {% for pt in permit_types %}
+                        <option value="{{ pt.id }}">{{ pt.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="custom-name-input">Or Custom Name</label>
+                    <input type="text" name="custom_name" id="custom-name-input" class="form-control" placeholder="Custom permit name">
+                </div>
+                <div class="form-group">
+                    <label for="permit_number">Permit Number</label>
+                    <input type="text" name="permit_number" class="form-control" placeholder="e.g. FH-2024-001">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="issuing_authority">Issuing Authority</label>
+                        <input type="text" name="issuing_authority" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="renewal_url">Renewal URL</label>
+                        <input type="url" name="renewal_url" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn modal-cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Permit</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

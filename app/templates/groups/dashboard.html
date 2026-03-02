@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Groups{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>Group Dashboard</h1>
+        <p>Compliance by department</p>
+    </div>
+    <button class="btn btn-primary" data-modal="add-group-modal">+ Add Group</button>
+</div>
+
+{% for g in groups %}
+<div class="card">
+    <div class="card-header">
+        <span>{{ g.group.name }}</span>
+        <span class="count">{{ g.total }} employees</span>
+    </div>
+    <div class="card-body" style="padding:.75rem 1.25rem;">
+        <div class="group-metrics">
+            <div class="gm-item">Compliance: <span style="color:var(--color-primary)">{{ g.headline_pct }}%</span></div>
+            <div class="gm-item">Compliant: <span style="color:var(--color-active)">{{ g.compliant_count }}</span></div>
+            <div class="gm-item">Upcoming: <span style="color:var(--color-upcoming)">{{ g.upcoming_count }}</span></div>
+            <div class="gm-item">Expired: <span style="color:var(--color-expired)">{{ g.expired_count }}</span></div>
+        </div>
+    </div>
+    {% if g.employees %}
+    <div>
+        {% for emp in g.employees %}
+        <div class="employee-row">
+            <a href="{{ url_for('employees.profile', emp_id=emp.id) }}" class="emp-name">{{ emp.full_name }}</a>
+            <span class="emp-meta">{{ emp.role or 'No role' }}</span>
+            <span class="emp-status">
+                {% if emp.compliance_category == 'EXPIRED' %}
+                <span class="badge badge-expired">Expired</span>
+                {% elif emp.compliance_category == 'UPCOMING' %}
+                <span class="badge badge-upcoming">Upcoming</span>
+                {% else %}
+                <span class="badge badge-active">Compliant</span>
+                {% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">No employees in this group.</div>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% if not groups %}
+<div class="card"><div class="empty-state">No groups defined. Click "Add Group" to create one.</div></div>
+{% endif %}
+
+{# ── Add Group Modal ──────────────────────────────────────────────────── #}
+<div id="add-group-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <span>Add Group</span>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form action="{{ url_for('groups.add') }}" method="post">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="group_name">Group Name *</label>
+                    <input type="text" name="name" id="group_name" class="form-control" required placeholder="e.g. Housekeeping">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn modal-cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

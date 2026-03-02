@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Employees{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>Employee Roster</h1>
+        <p>{{ employees|length }} active employees</p>
+    </div>
+    <a href="{{ url_for('employees.add') }}" class="btn btn-primary">+ Add Employee</a>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Group</th>
+                    <th>Active</th>
+                    <th>Upcoming</th>
+                    <th>Expired</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in employees %}
+                <tr>
+                    <td>
+                        <span class="expand-toggle" data-target="expand-{{ emp.id }}"></span>
+                    </td>
+                    <td><a href="{{ url_for('employees.profile', emp_id=emp.id) }}">{{ emp.full_name }}</a></td>
+                    <td>{{ emp.role or '—' }}</td>
+                    <td>{{ emp.group_name }}</td>
+                    <td>{{ emp.compliance_details.active }}</td>
+                    <td>{{ emp.compliance_details.upcoming }}</td>
+                    <td>{{ emp.compliance_details.expired }}</td>
+                    <td>
+                        {% if emp.compliance_category == 'EXPIRED' %}
+                        <span class="badge badge-expired">Expired</span>
+                        {% elif emp.compliance_category == 'UPCOMING' %}
+                        <span class="badge badge-upcoming">Upcoming</span>
+                        {% else %}
+                        <span class="badge badge-active">Compliant</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="8" style="padding:0;">
+                        <div id="expand-{{ emp.id }}" class="expandable-content">
+                            {% if emp.permits %}
+                            <table style="margin:0;">
+                                <thead>
+                                    <tr>
+                                        <th>Permit</th>
+                                        <th>Permit #</th>
+                                        <th>Expiration</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in emp.permits %}
+                                    <tr>
+                                        <td>{{ p.display_name }}</td>
+                                        <td>{{ p.permit_number or '—' }}</td>
+                                        <td>{{ p.latest_expiration or 'No renewal' }}</td>
+                                        <td>{{ p.status|status_badge|safe }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p class="text-muted">No active permits assigned.</p>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

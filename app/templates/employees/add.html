@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Add Employee{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Add Employee</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form action="{{ url_for('employees.add') }}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">First Name *</label>
+                    <input type="text" name="first_name" id="first_name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name *</label>
+                    <input type="text" name="last_name" id="last_name" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="group_id">Group *</label>
+                    <select name="group_id" id="group_id" class="form-control" required>
+                        <option value="">— Select Group —</option>
+                        {% for g in groups %}
+                        <option value="{{ g.id }}">{{ g.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <input type="text" name="role" id="role" class="form-control">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="employee_id">Employee ID (ADP)</label>
+                    <input type="text" name="employee_id" id="employee_id" class="form-control">
+                </div>
+            </div>
+            <div style="display:flex;gap:.5rem;margin-top:.5rem;">
+                <button type="submit" class="btn btn-primary">Add Employee</button>
+                <a href="{{ url_for('employees.roster') }}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

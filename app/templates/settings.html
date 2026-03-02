@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Settings</h1>
+    <p>Application configuration</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form action="{{ url_for('settings.index') }}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="hotel_name">Hotel Name</label>
+                    <input type="text" name="hotel_name" id="hotel_name" class="form-control"
+                           value="{{ settings.hotel_name }}">
+                </div>
+                <div class="form-group">
+                    <label for="upcoming_threshold_days">Upcoming Threshold (days)</label>
+                    <input type="number" name="upcoming_threshold_days" id="upcoming_threshold_days"
+                           class="form-control" value="{{ settings.upcoming_threshold_days }}" min="1" max="365">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="change_list_days">Change List Period (days)</label>
+                    <input type="number" name="change_list_days" id="change_list_days"
+                           class="form-control" value="{{ settings.change_list_days }}" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="archive_retention_days">Archive Retention (days)</label>
+                    <input type="number" name="archive_retention_days" id="archive_retention_days"
+                           class="form-control" value="{{ settings.archive_retention_days }}" min="1">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="shared_drive_path">Shared Drive Folder Path</label>
+                <input type="text" name="shared_drive_path" id="shared_drive_path" class="form-control"
+                       value="{{ settings.shared_drive_path }}" placeholder="Required for report publishing">
+                <small class="text-muted">Leave blank until report publishing is configured.</small>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="publish_interval_minutes">Publish Interval (minutes)</label>
+                    <input type="number" name="publish_interval_minutes" id="publish_interval_minutes"
+                           class="form-control" value="{{ settings.publish_interval_minutes }}" min="1">
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:.75rem;padding-top:1.5rem;">
+                    <input type="checkbox" name="pause_reports" id="pause_reports"
+                           {% if settings.pause_reports %}checked{% endif %}>
+                    <label for="pause_reports" style="margin-bottom:0;text-transform:none;font-size:.875rem;color:var(--color-text);">
+                        Pause report updates
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Save Settings</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
