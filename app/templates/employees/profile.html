@@ -69,6 +69,18 @@
                     <input type="text" name="employee_id" id="employee_id" class="form-control" value="{{ emp.employee_id or '' }}">
                 </div>
             </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="reports_to">Reports To</label>
+                    <input type="text" name="reports_to" id="reports_to" class="form-control" list="reports-to-list" value="{{ emp.reports_to or '' }}" placeholder="Manager name">
+                    <datalist id="reports-to-list">
+                        {% for name in reports_to_values %}
+                        <option value="{{ name }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="form-group"></div>
+            </div>
             <button type="submit" class="btn btn-primary mt-1">Save Changes</button>
         </form>
     </div>

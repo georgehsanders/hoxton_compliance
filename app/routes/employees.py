@@ -10,7 +10,7 @@ from app.models import (
     archive_employee, get_all_groups, get_all_permit_types,
     get_employee_permits, get_permit_with_renewals,
     create_employee_permit, create_renewal, deactivate_permit, activate_permit,
-    log_audit, get_permit_type,
+    log_audit, get_permit_type, get_all_reports_to_values,
 )
 from app.compliance import compute_permit_status, compute_employee_compliance, get_settings
 
@@ -60,6 +60,7 @@ def profile(emp_id):
     permits = get_employee_permits(conn, emp_id, active_only=False)
     groups = get_all_groups(conn)
     permit_types = get_all_permit_types(conn)
+    reports_to_values = get_all_reports_to_values(conn)
     category, details = compute_employee_compliance(
         [p for p in permits if p["active"]], threshold
     )
@@ -82,6 +83,7 @@ def profile(emp_id):
         permits=permits_with_status,
         groups=groups,
         permit_types=permit_types,
+        reports_to_values=reports_to_values,
         compliance_category=category,
         compliance_details=details,
         threshold=threshold,
@@ -133,6 +135,7 @@ def edit(emp_id):
         "first_name": emp["first_name"], "last_name": emp["last_name"],
         "role": emp["role"], "email": emp["email"],
         "group_id": emp["group_id"], "employee_id": emp["employee_id"],
+        "reports_to": emp["reports_to"],
     }
 
     first_name = request.form.get("first_name", "").strip()
@@ -141,6 +144,7 @@ def edit(emp_id):
     role = request.form.get("role", "").strip()
     email = request.form.get("email", "").strip()
     employee_id_field = request.form.get("employee_id", "").strip()
+    reports_to = request.form.get("reports_to", "").strip()
 
     if not first_name or not last_name or not group_id:
         flash("First name, last name, and group are required.", "error")
@@ -150,6 +154,7 @@ def edit(emp_id):
         "first_name": first_name, "last_name": last_name,
         "role": role, "email": email,
         "group_id": int(group_id), "employee_id": employee_id_field or None,
+        "reports_to": reports_to,
     }
 
     update_employee(conn, emp_id, **new_values)

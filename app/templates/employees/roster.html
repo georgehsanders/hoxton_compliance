@@ -17,6 +17,7 @@
                     <th></th>
                     <th>Name</th>
                     <th>Role</th>
+                    <th>Reports To</th>
                     <th>Group</th>
                     <th>Active</th>
                     <th>Upcoming</th>
@@ -32,6 +33,7 @@
                     </td>
                     <td><a href="{{ url_for('employees.profile', emp_id=emp.id) }}">{{ emp.full_name }}</a></td>
                     <td>{{ emp.role or '—' }}</td>
+                    <td>{{ emp.reports_to or '—' }}</td>
                     <td>{{ emp.group_name }}</td>
                     <td>{{ emp.compliance_details.active }}</td>
                     <td>{{ emp.compliance_details.upcoming }}</td>
@@ -47,7 +49,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="8" style="padding:0;">
+                    <td colspan="9" style="padding:0;">
                         <div id="expand-{{ emp.id }}" class="expandable-content">
                             {% if emp.permits %}
                             <table style="margin:0;">

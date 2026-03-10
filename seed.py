@@ -82,10 +82,26 @@ def seed():
         ("Priya", "Sharma", gid["Food & Beverage"], "Line Cook", "priya.sharma@hotel.com"),
         ("Liam", "O'Brien", gid["Food & Beverage"], "Server", "liam.obrien@hotel.com"),
     ]
+    # reports_to assignments: managers report to GM, staff report to dept managers
+    reports_to_map = {
+        "Maria Santos": "Robert Taylor",       # Front Desk Manager -> GM
+        "James Chen": "Maria Santos",           # Night Auditor -> FD Manager
+        "Sofia Rodriguez": "Maria Santos",      # Concierge -> FD Manager
+        "David Kim": "Robert Taylor",           # HK Supervisor -> GM
+        "Ana Petrov": "David Kim",              # Room Attendant -> HK Supervisor
+        "Marcus Johnson": "David Kim",          # Room Attendant -> HK Supervisor
+        "Isabella Moretti": "Robert Taylor",    # F&B Manager -> GM
+        "Tyler Brooks": "Isabella Moretti",     # Bartender -> F&B Manager
+        "Priya Sharma": "Isabella Moretti",     # Line Cook -> F&B Manager
+        "Liam O'Brien": "",                     # Server -> unassigned
+    }
+
     for first, last, group_id, role, email in employees:
+        full_name = f"{first} {last}"
+        rt = reports_to_map.get(full_name, "")
         conn.execute(
-            "INSERT INTO employee (first_name, last_name, group_id, role, email) VALUES (?, ?, ?, ?, ?)",
-            (first, last, group_id, role, email),
+            "INSERT INTO employee (first_name, last_name, group_id, role, email, reports_to) VALUES (?, ?, ?, ?, ?, ?)",
+            (first, last, group_id, role, email, rt),
         )
     conn.commit()
 
@@ -202,6 +218,7 @@ def seed():
     print("  3 groups, 10 employees, 5 permit types")
     print("  Status mix: 3 expired permits, 3 upcoming, rest active")
     print("  1 employee with no permits (Marcus Johnson)")
+    print("  9 employees with reports_to values, 1 unassigned (Liam O'Brien)")
     print()
     print("Run the app with: python run.py")
 

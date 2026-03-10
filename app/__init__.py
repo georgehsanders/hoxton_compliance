@@ -66,6 +66,7 @@ def create_app():
     from app.routes.groups import bp as groups_bp
     from app.routes.settings import bp as settings_bp
     from app.routes.audit import bp as audit_bp
+    from app.routes.managers import bp as managers_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(employees_bp)
@@ -73,6 +74,7 @@ def create_app():
     app.register_blueprint(groups_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(audit_bp)
+    app.register_blueprint(managers_bp)
 
     # Custom error handlers
     @app.errorhandler(404)

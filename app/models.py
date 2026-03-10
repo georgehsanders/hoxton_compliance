@@ -133,6 +133,14 @@ def archive_employee(conn, emp_id, archived=True):
     update_employee(conn, emp_id, archived=1 if archived else 0)
 
 
+def get_all_reports_to_values(conn):
+    """Return sorted list of distinct non-empty reports_to values."""
+    rows = conn.execute(
+        "SELECT DISTINCT reports_to FROM employee WHERE reports_to != '' ORDER BY reports_to"
+    ).fetchall()
+    return [row["reports_to"] for row in rows]
+
+
 # ── Permit Types ──────────────────────────────────────────────────────────────
 
 def get_all_permit_types(conn):

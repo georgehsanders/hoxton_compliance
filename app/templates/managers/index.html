@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}By Manager{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>By Manager</h1>
+    <p>Employees grouped by their "Reports To" value</p>
+</div>
+
+{% for manager_name, emps in managers %}
+<div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">{{ manager_name }} <small style="opacity:.6;">({{ emps|length }})</small></div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Group</th>
+                    <th>Active</th>
+                    <th>Upcoming</th>
+                    <th>Expired</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in emps %}
+                <tr>
+                    <td><a href="{{ url_for('employees.profile', emp_id=emp.id) }}">{{ emp.full_name }}</a></td>
+                    <td>{{ emp.role or '—' }}</td>
+                    <td>{{ emp.group_name }}</td>
+                    <td>{{ emp.compliance_details.active }}</td>
+                    <td>{{ emp.compliance_details.upcoming }}</td>
+                    <td>{{ emp.compliance_details.expired }}</td>
+                    <td>
+                        {% if emp.compliance_category == 'EXPIRED' %}
+                        <span class="badge badge-expired">Expired</span>
+                        {% elif emp.compliance_category == 'UPCOMING' %}
+                        <span class="badge badge-upcoming">Upcoming</span>
+                        {% else %}
+                        <span class="badge badge-active">Compliant</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+{% if unassigned %}
+<div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">Unassigned <small style="opacity:.6;">({{ unassigned|length }})</small></div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Group</th>
+                    <th>Active</th>
+                    <th>Upcoming</th>
+                    <th>Expired</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in unassigned %}
+                <tr>
+                    <td><a href="{{ url_for('employees.profile', emp_id=emp.id) }}">{{ emp.full_name }}</a></td>
+                    <td>{{ emp.role or '—' }}</td>
+                    <td>{{ emp.group_name }}</td>
+                    <td>{{ emp.compliance_details.active }}</td>
+                    <td>{{ emp.compliance_details.upcoming }}</td>
+                    <td>{{ emp.compliance_details.expired }}</td>
+                    <td>
+                        {% if emp.compliance_category == 'EXPIRED' %}
+                        <span class="badge badge-expired">Expired</span>
+                        {% elif emp.compliance_category == 'UPCOMING' %}
+                        <span class="badge badge-upcoming">Upcoming</span>
+                        {% else %}
+                        <span class="badge badge-active">Compliant</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if not managers and not unassigned %}
+<div class="card">
+    <div class="empty-state">No active employees found.</div>
+</div>
+{% endif %}
+{% endblock %}
