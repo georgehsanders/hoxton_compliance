@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ settings.hotel_name }} — Compliance Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='print.css') }}">
+</head>
+<body class="print-report">
+
+    <div class="print-toolbar no-print">
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-sm">Back to Dashboard</a>
+        <button class="btn btn-sm btn-primary" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+
+    <div class="print-content">
+        <h1>{{ settings.hotel_name }} — Compliance Report</h1>
+        <p class="subtitle">Generated {{ today }}</p>
+
+        <div class="metrics">
+            <div class="metric metric-primary">
+                <div class="value">{{ metrics.headline_pct }}%</div>
+                <div class="label">Overall Compliance</div>
+            </div>
+            <div class="metric metric-green">
+                <div class="value">{{ metrics.compliant_count }}</div>
+                <div class="label">Fully Compliant</div>
+            </div>
+            <div class="metric metric-orange">
+                <div class="value">{{ metrics.upcoming_count }}</div>
+                <div class="label">Upcoming</div>
+            </div>
+            <div class="metric metric-red">
+                <div class="value">{{ metrics.expired_count }}</div>
+                <div class="label">Expired</div>
+            </div>
+        </div>
+
+        {% if expired_employees %}
+        <h2><span class="badge badge-expired">Expired</span> Employees ({{ expired_employees|length }})</h2>
+        <table>
+            <thead><tr><th>Employee</th><th>Group</th><th>Role</th><th>Active</th><th>Upcoming</th><th>Expired</th></tr></thead>
+            <tbody>
+            {% for emp in expired_employees %}
+            <tr>
+                <td>{{ emp.full_name }}</td>
+                <td>{{ emp.group_name }}</td>
+                <td>{{ emp.role or '—' }}</td>
+                <td>{{ emp.compliance_details.active }}</td>
+                <td>{{ emp.compliance_details.upcoming }}</td>
+                <td>{{ emp.compliance_details.expired }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if upcoming_employees %}
+        <h2><span class="badge badge-upcoming">Upcoming</span> Employees ({{ upcoming_employees|length }})</h2>
+        <table>
+            <thead><tr><th>Employee</th><th>Group</th><th>Role</th><th>Active</th><th>Upcoming</th></tr></thead>
+            <tbody>
+            {% for emp in upcoming_employees %}
+            <tr>
+                <td>{{ emp.full_name }}</td>
+                <td>{{ emp.group_name }}</td>
+                <td>{{ emp.role or '—' }}</td>
+                <td>{{ emp.compliance_details.active }}</td>
+                <td>{{ emp.compliance_details.upcoming }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if compliant_employees %}
+        <h2><span class="badge badge-active">Compliant</span> Employees ({{ compliant_employees|length }})</h2>
+        <table>
+            <thead><tr><th>Employee</th><th>Group</th><th>Role</th><th>Active Permits</th></tr></thead>
+            <tbody>
+            {% for emp in compliant_employees %}
+            <tr>
+                <td>{{ emp.full_name }}</td>
+                <td>{{ emp.group_name }}</td>
+                <td>{{ emp.role or '—' }}</td>
+                <td>{{ emp.compliance_details.active }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <div class="print-footer">
+            {{ settings.hotel_name }} Compliance Tracker — Report generated {{ today }}
+        </div>
+    </div>
+
+    <script>
+        // Auto-open print dialog when the page loads
+        window.addEventListener("load", function () {
+            window.print();
+        });
+    </script>
+</body>
+</html>

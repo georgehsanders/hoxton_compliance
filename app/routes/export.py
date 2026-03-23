@@ -1,10 +1,10 @@
-"""Export routes — CSV and PDF manual exports, and compliance email draft."""
+"""Export routes — CSV export, print-friendly view, and compliance email draft."""
 
 import csv
 import io
 from datetime import date
 
-from flask import Blueprint, Response, render_template, make_response
+from flask import Blueprint, Response, render_template
 
 from app import get_db
 from app.models import (
@@ -81,25 +81,13 @@ def export_csv():
     )
 
 
-@bp.route("/pdf")
-def export_pdf():
-    """Export formatted dashboard as PDF using WeasyPrint."""
+@bp.route("/print")
+def print_view():
+    """Render a print-optimized dashboard that triggers the browser print dialog."""
     conn = get_db()
     data = compute_dashboard_data(conn)
     settings = get_settings(conn)
-
-    html = render_template("export/pdf_report.html", **data, settings=settings, today=date.today().isoformat())
-
-    from weasyprint import HTML
-    pdf_bytes = HTML(string=html).write_pdf()
-
-    hotel_name = settings.get("hotel_name", "Hotel").replace(" ", "_")
-    filename = f"{hotel_name}_Compliance_{date.today().isoformat()}.pdf"
-
-    response = make_response(pdf_bytes)
-    response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-    return response
+    return render_template("export/print_report.html", **data, settings=settings, today=date.today().isoformat())
 
 
 @bp.route("/email-draft")
