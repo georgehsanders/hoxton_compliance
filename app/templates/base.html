@@ -25,13 +25,6 @@
     </nav>
 
     <main class="main-content">
-        {# Report error banner — hidden by default, shown when export status is ERROR #}
-        {% if report_state and report_state.last_export_status == 'ERROR' %}
-        <div class="report-error-banner">
-            &#9888; Report export error: {{ report_state.last_export_error_text or 'Unknown error' }}
-        </div>
-        {% endif %}
-
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="flash-messages">

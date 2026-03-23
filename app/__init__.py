@@ -50,13 +50,11 @@ def create_app():
 
     @app.context_processor
     def inject_helpers():
-        from app.models import get_settings, get_report_state
+        from app.models import get_settings
         conn = get_db()
         settings = get_settings(conn)
-        report_state = get_report_state(conn)
         return dict(
             hotel_name=settings.get("hotel_name", "Hotel"),
-            report_state=report_state,
         )
 
     # Register blueprints
@@ -67,6 +65,7 @@ def create_app():
     from app.routes.settings import bp as settings_bp
     from app.routes.audit import bp as audit_bp
     from app.routes.managers import bp as managers_bp
+    from app.routes.export import bp as export_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(employees_bp)
@@ -75,6 +74,7 @@ def create_app():
     app.register_blueprint(settings_bp)
     app.register_blueprint(audit_bp)
     app.register_blueprint(managers_bp)
+    app.register_blueprint(export_bp)
 
     # Custom error handlers
     @app.errorhandler(404)

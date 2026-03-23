@@ -19,10 +19,8 @@ def index():
             "hotel_name": request.form.get("hotel_name", "Hotel").strip(),
             "upcoming_threshold_days": int(request.form.get("upcoming_threshold_days", 60)),
             "change_list_days": int(request.form.get("change_list_days", 1)),
-            "shared_drive_path": request.form.get("shared_drive_path", "").strip(),
-            "archive_retention_days": int(request.form.get("archive_retention_days", 7)),
-            "publish_interval_minutes": int(request.form.get("publish_interval_minutes", 5)),
-            "pause_reports": "pause_reports" in request.form,
+            "default_recipient_emails": request.form.get("default_recipient_emails", "").strip(),
+            "default_email_intro": request.form.get("default_email_intro", "").strip(),
             "last_midnight_run": old_settings.get("last_midnight_run"),
         }
 

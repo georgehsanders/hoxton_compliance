@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app import get_db
 from app.models import (
     get_all_permit_types, get_permit_type, create_permit_type,
-    get_employees_by_permit_type, log_audit,
+    update_permit_type, get_employees_by_permit_type, log_audit,
 )
 from app.compliance import compute_permit_status, get_settings
 
@@ -44,12 +44,14 @@ def add():
     renewal_url = request.form.get("renewal_url", "").strip()
     duration_string = request.form.get("duration_string", "").strip() or None
 
+    renewal_instructions = request.form.get("renewal_instructions", "").strip()
+
     if not name:
         flash("Permit type name is required.", "error")
         return redirect(url_for("permits.directory"))
 
     try:
-        pt_id = create_permit_type(conn, name, issuing_authority, renewal_url, duration_string)
+        pt_id = create_permit_type(conn, name, issuing_authority, renewal_url, duration_string, renewal_instructions)
         log_audit(conn, "PermitType", pt_id, "CREATE",
                   f"Created permit type '{name}'",
                   new_values={"name": name, "issuing_authority": issuing_authority})
@@ -57,4 +59,23 @@ def add():
     except Exception as e:
         flash(f"Error creating permit type: {e}", "error")
 
+    return redirect(url_for("permits.directory"))
+
+
+@bp.route("/<int:pt_id>/edit", methods=["POST"])
+def edit(pt_id):
+    conn = get_db()
+    pt = get_permit_type(conn, pt_id)
+    if not pt:
+        flash("Permit type not found.", "error")
+        return redirect(url_for("permits.directory"))
+
+    old_values = dict(pt)
+    renewal_instructions = request.form.get("renewal_instructions", "").strip()
+    update_permit_type(conn, pt_id, renewal_instructions=renewal_instructions)
+    log_audit(conn, "PermitType", pt_id, "UPDATE",
+              f"Updated renewal instructions for '{pt['name']}'",
+              old_values={"renewal_instructions": old_values.get("renewal_instructions", "")},
+              new_values={"renewal_instructions": renewal_instructions})
+    flash(f"Renewal instructions updated for '{pt['name']}'.", "success")
     return redirect(url_for("permits.directory"))

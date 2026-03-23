@@ -14,11 +14,9 @@ DEFAULT_SETTINGS = {
     "hotel_name": "Hotel",
     "upcoming_threshold_days": 60,
     "change_list_days": 1,
-    "shared_drive_path": "",
-    "archive_retention_days": 7,
-    "publish_interval_minutes": 5,
-    "pause_reports": False,
     "last_midnight_run": None,
+    "default_recipient_emails": "",
+    "default_email_intro": "Please review the following compliance items requiring attention.",
 }
 
 
@@ -37,28 +35,6 @@ def save_settings(conn, settings_dict):
     conn.execute(
         "UPDATE settings SET settings_json = ? WHERE id = 1",
         (json.dumps(settings_dict),),
-    )
-    conn.commit()
-
-
-# ── Report State ──────────────────────────────────────────────────────────────
-
-def get_report_state(conn):
-    row = conn.execute("SELECT * FROM report_state WHERE id = 1").fetchone()
-    if row:
-        return dict(row)
-    return {
-        "report_dirty": 1,
-        "last_published_at": None,
-        "last_export_status": "NEVER",
-        "last_export_error_text": None,
-    }
-
-
-def set_report_dirty(conn, dirty=True):
-    conn.execute(
-        "UPDATE report_state SET report_dirty = ?, updated_at = ? WHERE id = 1",
-        (1 if dirty else 0, datetime.utcnow().isoformat()),
     )
     conn.commit()
 
@@ -151,14 +127,21 @@ def get_permit_type(conn, pt_id):
     return conn.execute("SELECT * FROM permit_type WHERE id = ?", (pt_id,)).fetchone()
 
 
-def create_permit_type(conn, name, issuing_authority="", renewal_url="", duration_string=None):
+def create_permit_type(conn, name, issuing_authority="", renewal_url="", duration_string=None, renewal_instructions=""):
     cursor = conn.execute(
-        """INSERT INTO permit_type (name, default_issuing_authority, default_renewal_url, default_duration_string)
-           VALUES (?, ?, ?, ?)""",
-        (name, issuing_authority, renewal_url, duration_string),
+        """INSERT INTO permit_type (name, default_issuing_authority, default_renewal_url, default_duration_string, renewal_instructions)
+           VALUES (?, ?, ?, ?, ?)""",
+        (name, issuing_authority, renewal_url, duration_string, renewal_instructions),
     )
     conn.commit()
     return cursor.lastrowid
+
+
+def update_permit_type(conn, pt_id, **kwargs):
+    sets = ", ".join(f"{k} = ?" for k in kwargs)
+    vals = list(kwargs.values()) + [pt_id]
+    conn.execute(f"UPDATE permit_type SET {sets} WHERE id = ?", vals)
+    conn.commit()
 
 
 # ── Employee Permits ──────────────────────────────────────────────────────────

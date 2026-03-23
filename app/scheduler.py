@@ -1,19 +1,16 @@
 """
 Midnight boundary job and scheduling helpers.
 
-Recomputes status transitions at the day boundary, writes StatusEvents,
-and marks the report as dirty when meaningful changes occur.
+Recomputes status transitions at the day boundary and writes StatusEvents.
 
-Called:
-  - On app startup if it hasn't run today
-  - By the future CLI entrypoint / Task Scheduler
+Called on app startup if it hasn't run today.
 """
 
 from datetime import date, datetime
 
 from app.models import (
     get_settings, save_settings, get_all_employees, get_employee_permits,
-    create_status_event, set_report_dirty,
+    create_status_event,
 )
 from app.compliance import compute_permit_status, compute_employee_compliance
 
@@ -62,9 +59,6 @@ def run_midnight_job(conn):
                     to_status=new_status,
                 )
                 changes_found = True
-
-    if changes_found:
-        set_report_dirty(conn, True)
 
     # Update last run timestamp
     settings["last_midnight_run"] = date.today().isoformat()

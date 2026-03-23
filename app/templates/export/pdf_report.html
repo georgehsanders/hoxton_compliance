@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ settings.hotel_name }} — Compliance Report</title>
+    <style>
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #24292e; margin: 30px; }
+        h1 { font-size: 20px; margin-bottom: 2px; }
+        .subtitle { color: #586069; font-size: 12px; margin-bottom: 20px; }
+        .metrics { display: flex; gap: 16px; margin-bottom: 24px; }
+        .metric { border: 1px solid #e1e4e8; border-radius: 6px; padding: 12px 16px; text-align: center; flex: 1; }
+        .metric .value { font-size: 22px; font-weight: 800; }
+        .metric .label { font-size: 9px; color: #586069; text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+        .metric-primary .value { color: #2563eb; }
+        .metric-green .value { color: #16a34a; }
+        .metric-orange .value { color: #d97706; }
+        .metric-red .value { color: #dc2626; }
+        h2 { font-size: 14px; margin-top: 20px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e1e4e8; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        th { text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: .5px; color: #586069; padding: 6px 8px; background: #f6f8fa; border-bottom: 1px solid #e1e4e8; }
+        td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
+        .badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 9px; font-weight: 600; }
+        .badge-expired { background: #fef2f2; color: #dc2626; }
+        .badge-upcoming { background: #fffbeb; color: #d97706; }
+        .badge-active { background: #f0fdf4; color: #16a34a; }
+        .empty { text-align: center; padding: 16px; color: #586069; }
+        .footer { margin-top: 30px; font-size: 9px; color: #586069; border-top: 1px solid #e1e4e8; padding-top: 8px; }
+    </style>
+</head>
+<body>
+    <h1>{{ settings.hotel_name }} — Compliance Report</h1>
+    <div class="subtitle">Generated {{ today }}</div>
+
+    <div class="metrics">
+        <div class="metric metric-primary">
+            <div class="value">{{ metrics.headline_pct }}%</div>
+            <div class="label">Overall Compliance</div>
+        </div>
+        <div class="metric metric-green">
+            <div class="value">{{ metrics.compliant_count }}</div>
+            <div class="label">Fully Compliant</div>
+        </div>
+        <div class="metric metric-orange">
+            <div class="value">{{ metrics.upcoming_count }}</div>
+            <div class="label">Upcoming</div>
+        </div>
+        <div class="metric metric-red">
+            <div class="value">{{ metrics.expired_count }}</div>
+            <div class="label">Expired</div>
+        </div>
+    </div>
+
+    {% if expired_employees %}
+    <h2>Expired ({{ expired_employees|length }})</h2>
+    <table>
+        <thead><tr><th>Employee</th><th>Group</th><th>Role</th><th>Active</th><th>Upcoming</th><th>Expired</th></tr></thead>
+        <tbody>
+        {% for emp in expired_employees %}
+        <tr>
+            <td>{{ emp.full_name }}</td>
+            <td>{{ emp.group_name }}</td>
+            <td>{{ emp.role or '—' }}</td>
+            <td>{{ emp.compliance_details.active }}</td>
+            <td>{{ emp.compliance_details.upcoming }}</td>
+            <td>{{ emp.compliance_details.expired }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if upcoming_employees %}
+    <h2>Upcoming ({{ upcoming_employees|length }})</h2>
+    <table>
+        <thead><tr><th>Employee</th><th>Group</th><th>Role</th><th>Active</th><th>Upcoming</th></tr></thead>
+        <tbody>
+        {% for emp in upcoming_employees %}
+        <tr>
+            <td>{{ emp.full_name }}</td>
+            <td>{{ emp.group_name }}</td>
+            <td>{{ emp.role or '—' }}</td>
+            <td>{{ emp.compliance_details.active }}</td>
+            <td>{{ emp.compliance_details.upcoming }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if compliant_employees %}
+    <h2>Compliant ({{ compliant_employees|length }})</h2>
+    <table>
+        <thead><tr><th>Employee</th><th>Group</th><th>Role</th><th>Active Permits</th></tr></thead>
+        <tbody>
+        {% for emp in compliant_employees %}
+        <tr>
+            <td>{{ emp.full_name }}</td>
+            <td>{{ emp.group_name }}</td>
+            <td>{{ emp.role or '—' }}</td>
+            <td>{{ emp.compliance_details.active }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <div class="footer">{{ settings.hotel_name }} Compliance Tracker — Report generated {{ today }}</div>
+</body>
+</html>

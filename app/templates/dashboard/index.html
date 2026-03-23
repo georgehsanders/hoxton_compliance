@@ -6,8 +6,11 @@
         <h1>Compliance Dashboard</h1>
         <p>Overview of employee permit compliance status</p>
     </div>
-    <div>
-        <label for="sort-select" class="text-sm text-muted">View: </label>
+    <div style="display:flex;align-items:center;gap:.75rem;">
+        <a href="{{ url_for('export.export_csv') }}" class="btn btn-sm">Export CSV</a>
+        <a href="{{ url_for('export.export_pdf') }}" class="btn btn-sm">Export PDF</a>
+        <a href="{{ url_for('export.email_draft') }}" class="btn btn-sm">Draft Compliance Email</a>
+        <label for="sort-select" class="text-sm text-muted" style="margin-left:.5rem;">View: </label>
         <select id="sort-select" class="form-control" style="width:auto;display:inline-block;">
             <option value="">Default order</option>
             <option value="expired">Expired first</option>
