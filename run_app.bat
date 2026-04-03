@@ -12,7 +12,7 @@ if exist "venv\Scripts\activate.bat" (
 )
 
 REM Install dependencies if needed
-pip install -q -r requirements.txt 2>nul
+python -m pip install -q -r requirements.txt 2>nul
 
 REM Use port 5050 by default (port 5000 conflicts with macOS AirPlay)
 if not defined PORT set PORT=5050

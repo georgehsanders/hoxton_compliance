@@ -10,10 +10,15 @@ Usage:
 
 import os
 import re
+import sys
 import sqlite3
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "compliance.db")
-MIGRATIONS_DIR = os.path.dirname(__file__)
+if getattr(sys, "frozen", False):
+    MIGRATIONS_DIR = os.path.join(sys._MEIPASS, "migrations")
+    DB_PATH = os.path.join(os.path.dirname(sys.executable), "compliance.db")
+else:
+    DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "compliance.db")
+    MIGRATIONS_DIR = os.path.dirname(__file__)
 
 
 def get_migration_files():

@@ -1,13 +1,38 @@
 """Flask application factory for the Hotel Compliance Tracker."""
 
 import os
+import sys
 import sqlite3
 
 from flask import Flask, g
 
 from app.scheduler import maybe_run_midnight_job
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "compliance.db")
+
+def _get_base_dir():
+    """Return the base directory for read-only assets (templates, static, stubs).
+
+    When running as a PyInstaller bundle, assets are extracted to sys._MEIPASS.
+    When running from source, use the project root.
+    """
+    if getattr(sys, "frozen", False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.dirname(__file__))
+
+
+def _get_db_dir():
+    """Return the directory for the database file.
+
+    When bundled, place the DB next to the .exe so it persists across runs.
+    When running from source, use the project root.
+    """
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.dirname(__file__))
+
+
+BASE_DIR = _get_base_dir()
+DB_PATH = os.path.join(_get_db_dir(), "compliance.db")
 
 
 def get_db():
@@ -28,7 +53,11 @@ def close_db(e=None):
 
 def create_app():
     """Create and configure the Flask application."""
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(BASE_DIR, "app", "templates"),
+        static_folder=os.path.join(BASE_DIR, "app", "static"),
+    )
     app.secret_key = "hotel-compliance-tracker-dev-key"
 
     # Ensure database exists by running migrations
